@@ -9,7 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import math
-
+device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
+print(device, "on device")
 
 # In[ ]:
 
@@ -98,26 +99,26 @@ class LSTMTagger(nn.Module):
         embeds = self.word_embeddings(sentence)
         lstm_out, _ = self.lstm(embeds.view(len(sentence), 1, -1))
         tag_space = self.hidden2tag(lstm_out.view(len(sentence), -1))
-        tag_scores = F.softmax(tag_space, dim=1)
+        tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
 
 
 # In[11]:
 
 
-def perplexity(data, model):
+def perplexity(data, model, tag_scores):
     s = 0
     gt_length = 0
     for i in data:
         with torch.no_grad():
             inputs = i[:-1]
-            inputs = torch.LongTensor(inputs)
+            inputs = torch.LongTensor(inputs).to(device)
             tag_scores = model(inputs) 
             gt = i[1:]
             gt_length += len(gt)
             x = 0
             for j in gt:
-                s += math.log(tag_scores[x][j])      #check for log math domain error
+                s += tag_scores[x][j]      #check for log math domain error
             x += 1
                 
     perplex = math.exp(-(s/gt_length))
@@ -131,11 +132,12 @@ def perplexity(data, model):
 def train(epochs, model, data):
 
     for epoch in range(epochs): 
+        print(epoch,"epoch")
         for sentence in training_data:
             # Step 1. Remember that Pytorch accumulates gradients.
             # We need to clear them out before each instance
             model.zero_grad()
-            sentence = torch.LongTensor(sentence)
+            sentence = torch.LongTensor(sentence).to(device)
 
             tag_scores = model(sentence[:-1])
 
@@ -143,8 +145,7 @@ def train(epochs, model, data):
             loss.backward()
             optimizer.step() 
 
-    print(perplexity(training_data, model),"training accuracy")
-    print(perplexity(data_dev, model),"dev accuracy")
+    return tag_scores
 
 
 # In[ ]:
@@ -153,10 +154,12 @@ def train(epochs, model, data):
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0)
-train(10, model, training_data)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model, tag_scores), "dev accuracy")
 
 
 # In[ ]:
@@ -165,10 +168,13 @@ train(10, model, training_data)
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adagrad(model.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0, eps=1e-10)
-train(10, model, training_data)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model, tag_scores),"dev accuracy")
+
 
 
 # In[ ]:
@@ -177,10 +183,13 @@ train(10, model, training_data)
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
-train(10, model, training_data)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model, tag_scores),"dev accuracy")
+
 
 
 # In[ ]:
@@ -189,10 +198,13 @@ train(10, model, training_data)
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adamax(model.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
-train(10, model, training_data)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model, tag_scores),"dev accuracy")
+
 
 
 # In[ ]:
@@ -201,10 +213,13 @@ train(10, model, training_data)
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.ASGD(model.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0)
-train(10, model, training_data)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model, tag_scores),"dev accuracy")
+
 
 
 # In[ ]:
@@ -213,8 +228,11 @@ train(10, model, training_data)
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0, dampening=0, weight_decay=0, nesterov=False)
-train(10, model, training_data)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model, tag_scores),"dev accuracy")
+
 
