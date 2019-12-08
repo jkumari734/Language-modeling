@@ -102,28 +102,6 @@ class LSTMTagger(nn.Module):
         return tag_scores
 
 
-# In[9]:
-
-
-EMBEDDING_DIM = 32
-HIDDEN_DIM = 32
-
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
-loss_function = nn.CrossEntropyLoss()
-
-
-# In[10]:
-
-
-optimize = [optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0), 
-            optim.Adagrad(model.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0, eps=1e-10), 
-            optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False), 
-            optim.Adamax(model.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0), 
-            optim.ASGD(model.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0), 
-#             optim.LBFGS(model.parameters(), lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-07, tolerance_change=1e-09, history_size=100, line_search_fn=None), 
-            optim.SGD(model.parameters(), lr=0.1, momentum=0, dampening=0, weight_decay=0, nesterov=False)]
-
-
 # In[11]:
 
 
@@ -142,7 +120,6 @@ def perplexity(data, model):
                 s += math.log(tag_scores[x][j])      #check for log math domain error
             x += 1
                 
-        break
     perplex = math.exp(-(s/gt_length))
     
     return perplex
@@ -151,31 +128,93 @@ def perplexity(data, model):
 # In[12]:
 
 
-def train(epochs, optimize, model, data):
-    
-    for j in optimize: 
-        optimizer = j
+def train(epochs, model, data):
 
-        for epoch in range(epochs): 
-            for sentence in training_data:
-                # Step 1. Remember that Pytorch accumulates gradients.
-                # We need to clear them out before each instance
-                model.zero_grad()
-                sentence = torch.LongTensor(sentence)
+    for epoch in range(epochs): 
+        for sentence in training_data:
+            # Step 1. Remember that Pytorch accumulates gradients.
+            # We need to clear them out before each instance
+            model.zero_grad()
+            sentence = torch.LongTensor(sentence)
 
-                tag_scores = model(sentence[:-1])
+            tag_scores = model(sentence[:-1])
 
-                loss = loss_function(tag_scores, sentence[1:])
-                loss.backward()
-                optimizer.step() 
-                break
+            loss = loss_function(tag_scores, sentence[1:])
+            loss.backward()
+            optimizer.step() 
 
-        print(perplexity(training_data, model),"training accuracy")
-        print(perplexity(data_dev, model),"dev accuracy")
+    print(perplexity(training_data, model),"training accuracy")
+    print(perplexity(data_dev, model),"dev accuracy")
 
 
-# In[13]:
+# In[ ]:
 
 
-train(1, optimize, model, training_data)
+EMBEDDING_DIM = 32
+HIDDEN_DIM = 32
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0)
+train(10, model, training_data)
+
+
+# In[ ]:
+
+
+EMBEDDING_DIM = 32
+HIDDEN_DIM = 32
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.Adagrad(model.parameters(), lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0, eps=1e-10)
+train(10, model, training_data)
+
+
+# In[ ]:
+
+
+EMBEDDING_DIM = 32
+HIDDEN_DIM = 32
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
+train(10, model, training_data)
+
+
+# In[ ]:
+
+
+EMBEDDING_DIM = 32
+HIDDEN_DIM = 32
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.Adamax(model.parameters(), lr=0.002, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+train(10, model, training_data)
+
+
+# In[ ]:
+
+
+EMBEDDING_DIM = 32
+HIDDEN_DIM = 32
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.ASGD(model.parameters(), lr=0.01, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0)
+train(10, model, training_data)
+
+
+# In[ ]:
+
+
+EMBEDDING_DIM = 32
+HIDDEN_DIM = 32
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0, dampening=0, weight_decay=0, nesterov=False)
+train(10, model, training_data)
 
