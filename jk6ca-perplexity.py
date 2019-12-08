@@ -9,7 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import math
-
+device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
+print(device, "on device")
 
 # In[3]:
 
@@ -106,24 +107,24 @@ class LSTMTagger(nn.Module):
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 
-for epoch in range(1): 
+for epoch in range(10): 
+    print(epoch, "epoch")
     for sentence in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
         model.zero_grad()
-        sentence = torch.LongTensor(sentence)
+        sentence = torch.LongTensor(sentence).to(device)
     
         tag_scores = model(sentence[:-1])
 
         loss = loss_function(tag_scores, sentence[1:])
         loss.backward()
         optimizer.step()
-        break
 
 
 # In[41]:
@@ -135,16 +136,16 @@ def perplexity(data):
     for i in data:
         with torch.no_grad():
             inputs = i[:-1]
-            inputs = torch.LongTensor(inputs)
+            inputs = torch.LongTensor(inputs).to(device)
             tag_scores = model(inputs) 
             gt = i[1:]
             gt_length += len(gt)
             x = 0
             for j in gt:
-                s += math.log(tag_scores[x][j])      #check for log math domain error
+                s += tag_scores[x][j]      #check for log math domain error
             x += 1
                 
-        break
+        
     perplex = math.exp(-(s/gt_length))
     
     return perplex
@@ -153,7 +154,7 @@ def perplexity(data):
 # In[42]:
 
 
-perplexity(training_data)
+print(perplexity(training_data), "training")
 
 
 # In[44]:
@@ -166,5 +167,5 @@ sentences_dev = file_read('dev-wiki.txt')
 
 
 data_dev = data_preprocess(tags, sentences_dev)
-perplexity(data_dev)
+print(perplexity(data_dev),"dev")
 
