@@ -105,7 +105,7 @@ class LSTMTagger(nn.Module):
         lstm_out2, _ = self.lstm2(lstm_out1.view(len(sentence), 1, -1))
         lstm_out3, _ = self.lstm3(lstm_out2.view(len(sentence), 1, -1))
         tag_space = self.hidden2tag(lstm_out3.view(len(sentence), -1))
-        tag_scores = F.softmax(tag_space, dim=1)
+        tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
 
 
@@ -181,7 +181,7 @@ def perplexity(data):
             gt_length += len(gt)
             x = 0
             for j in gt:
-                s += math.log(tag_scores[x][j])      #check for log math domain error
+                s += tag_scores[x][j]      #check for log math domain error
             x += 1
                 
     perplex = math.exp(-(s/gt_length))
