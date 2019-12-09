@@ -124,7 +124,7 @@ def perplexity(data, model, tag_scores):
                 s += tag_scores[x][j]      #check for log math domain error
             x += 1
                 
-        break
+    
     perplex = math.exp(-(s/gt_length))
     
     return perplex
@@ -147,7 +147,8 @@ def train(epochs, model, data):
 
                 loss = loss_function(tag_scores, sentence[1:])
                 loss.backward()
-                optimizer.step() 
+                optimizer.step()
+            
 
         return tag_scores     
 
@@ -161,8 +162,8 @@ model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 tag_scores = train(10, model, training_data)
-print(perplexity(training_data, model),"training accuracy")
-print(perplexity(data_dev, model),"dev accuracy")
+print(perplexity(training_data, model,tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
 
 EMBEDDING_DIM = 64
 HIDDEN_DIM = 64
@@ -170,9 +171,9 @@ HIDDEN_DIM = 64
 model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
-train(10, model, training_data)
-print(perplexity(training_data, model),"training accuracy")
-print(perplexity(data_dev, model),"dev accuracy")
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
 
 EMBEDDING_DIM = 128
 HIDDEN_DIM = 128
@@ -180,9 +181,9 @@ HIDDEN_DIM = 128
 model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
-train(10, model, training_data)
-print(perplexity(training_data, model),"training accuracy")
-print(perplexity(data_dev, model),"dev accuracy")
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model,tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
 
 EMBEDDING_DIM = 256
 HIDDEN_DIM = 256
@@ -190,6 +191,6 @@ HIDDEN_DIM = 256
 model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
-train(10, model, training_data)
-print(perplexity(training_data, model),"training accuracy")
-print(perplexity(data_dev, model),"dev accuracy")
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model,tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
