@@ -9,7 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import math
-
+device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
+print(device, "on device")
 
 # In[2]:
 
@@ -145,7 +146,7 @@ class LSTMTagger(nn.Module):
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
@@ -155,7 +156,7 @@ for epoch in range(1):
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
         model.zero_grad()
-        sentence = torch.LongTensor(sentence)
+        sentence = torch.LongTensor(sentence).to(device)
     
         tag_scores = model(sentence[:-1])
 
@@ -174,7 +175,7 @@ def perplexity(data):
     for i in data:
         with torch.no_grad():
             inputs = i[:-1]
-            inputs = torch.LongTensor(inputs)
+            inputs = torch.LongTensor(inputs).to(device)
             tag_scores = model(inputs) 
             gt = i[1:]
             gt_length += len(gt)
