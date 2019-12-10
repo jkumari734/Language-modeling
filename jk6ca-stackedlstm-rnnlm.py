@@ -146,18 +146,18 @@ class LSTMTagger(nn.Module):
 EMBEDDING_DIM = 32
 HIDDEN_DIM = 32
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 
-for epoch in range(1): 
+for epoch in range(10): 
     print(epoch,"epoch")
     for sentence in training_data:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
         model.zero_grad()
-        sentence = torch.LongTensor(sentence)to(device)
+        sentence = torch.LongTensor(sentence).to(device)
     
         tag_scores = model(sentence[:-1])
 
@@ -175,7 +175,7 @@ def perplexity(data):
     for i in data:
         with torch.no_grad():
             inputs = i[:-1]
-            inputs = torch.LongTensor(inputs)to(device)
+            inputs = torch.LongTensor(inputs).to(device)
             tag_scores = model(inputs) 
             gt = i[1:]
             gt_length += len(gt)
@@ -192,11 +192,11 @@ def perplexity(data):
 # In[13]:
 
 
-perplexity(training_data)
+print(perplexity(training_data),"train")
 
 
 # In[15]:
 
 
-perplexity(data_dev)
+print(perplexity(data_dev),"dev")
 
