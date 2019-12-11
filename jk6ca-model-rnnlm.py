@@ -165,7 +165,7 @@ tag_scores = train(10, model, training_data)
 print(perplexity(training_data, model,tag_scores),"training accuracy")
 print(perplexity(data_dev, model,tag_scores),"dev accuracy")
 
-EMBEDDING_DIM = 64
+EMBEDDING_DIM = 32
 HIDDEN_DIM = 64
 
 model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
