@@ -83,6 +83,36 @@ data_dev = data_preprocess(tags, sentences_dev)
 
 ###################### For stacked layers = 3
 
+#class LSTMTagger(nn.Module):
+ #   def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size):
+  #      super(LSTMTagger, self).__init__()
+   #     self.hidden_dim = hidden_dim
+
+    #    self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
+
+        # The LSTM takes word embeddings as inputs, and outputs hidden states
+        # with dimensionality hidden_dim.
+     #   self.lstm1 = nn.LSTM(embedding_dim, hidden_dim)
+      #  self.lstm2 = nn.LSTM(hidden_dim, hidden_dim)
+       # self.lstm3 = nn.LSTM(hidden_dim, hidden_dim)
+
+        # The linear layer that maps from hidden state space to tag space
+     #   self.hidden2tag = nn.Linear(hidden_dim, tagset_size)
+
+   # def forward(self, sentence):
+    #    embeds = self.word_embeddings(sentence)
+    #    lstm_out1, _ = self.lstm1(embeds.view(len(sentence), 1, -1))
+     #   lstm_out2, _ = self.lstm2(lstm_out1.view(len(sentence), 1, -1))
+     #   lstm_out3, _ = self.lstm3(lstm_out2.view(len(sentence), 1, -1))
+     #   tag_space = self.hidden2tag(lstm_out3.view(len(sentence), -1))
+     #   tag_scores = F.log_softmax(tag_space, dim=1)
+     #   return tag_scores
+
+
+# In[ ]:
+
+###############  For stacked layers = 2
+
 class LSTMTagger(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size):
         super(LSTMTagger, self).__init__()
@@ -104,40 +134,9 @@ class LSTMTagger(nn.Module):
         lstm_out1, _ = self.lstm1(embeds.view(len(sentence), 1, -1))
         lstm_out2, _ = self.lstm2(lstm_out1.view(len(sentence), 1, -1))
         lstm_out3, _ = self.lstm3(lstm_out2.view(len(sentence), 1, -1))
-        tag_space = self.hidden2tag(lstm_out3.view(len(sentence), -1))
+        tag_space = self.hidden2tag(lstm_out2.view(len(sentence), -1))
         tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
-
-
-# In[ ]:
-
-
-###############  For stacked layers = 2
-
-#class LSTMTagger(nn.Module):
- #   def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size):
-  #      super(LSTMTagger, self).__init__()
-   #     self.hidden_dim = hidden_dim
-
-    #    self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
-
-        # The LSTM takes word embeddings as inputs, and outputs hidden states
-        # with dimensionality hidden_dim.
-     #   self.lstm1 = nn.LSTM(embedding_dim, hidden_dim)
-      #  self.lstm2 = nn.LSTM(hidden_dim, hidden_dim)
-#         self.lstm3 = nn.LSTM(hidden_dim, hidden_dim)
-
-        # The linear layer that maps from hidden state space to tag space
-       # self.hidden2tag = nn.Linear(hidden_dim, tagset_size)
-
-   # def forward(self, sentence):
-    #    embeds = self.word_embeddings(sentence)
-     #   lstm_out1, _ = self.lstm1(embeds.view(len(sentence), 1, -1))
-     #   lstm_out2, _ = self.lstm2(lstm_out1.view(len(sentence), 1, -1))
-#         lstm_out3, _ = self.lstm3(lstm_out2.view(len(sentence), 1, -1))
-      #  tag_space = self.hidden2tag(lstm_out2.view(len(sentence), -1))
-      #  tag_scores = F.softmax(tag_space, dim=1)
-       # return tag_scores
 
 
 # In[9]:
