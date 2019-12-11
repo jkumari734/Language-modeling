@@ -9,7 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import math
-
+device = torch.device(f"cuda:0"if torch.cuda.is_available()else"cpu")
+print(device, "on device")
 
 # In[2]:
 
@@ -98,35 +99,32 @@ class LSTMTagger(nn.Module):
         embeds = self.word_embeddings(sentence)
         lstm_out, _ = self.lstm(embeds.view(len(sentence), 1, -1))
         tag_space = self.hidden2tag(lstm_out.view(len(sentence), -1))
-        tag_scores = F.softmax(tag_space, dim=1)
+        tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
 
 
-# In[9]:
-
-
-dimension = [(32,32),(64,64),(128,128),(256,256)]
+# In[
 
 
 # In[10]:
 
 
-def perplexity(data, model):
+def perplexity(data, model, tag_scores):
     s = 0
     gt_length = 0
     for i in data:
         with torch.no_grad():
             inputs = i[:-1]
-            inputs = torch.LongTensor(inputs)
+            inputs = torch.LongTensor(inputs).to(device)
             tag_scores = model(inputs) 
             gt = i[1:]
             gt_length += len(gt)
             x = 0
             for j in gt:
-                s += math.log(tag_scores[x][j])      #check for log math domain error
+                s += tag_scores[x][j]      #check for log math domain error
             x += 1
                 
-        break
+    
     perplex = math.exp(-(s/gt_length))
     
     return perplex
@@ -135,38 +133,64 @@ def perplexity(data, model):
 # In[11]:
 
 
-def train(epochs, dimension, training_data, data_dev):
+def train(epochs, model, data):
     
-    for j in dimension:
-    
-        EMBEDDING_DIM = j[0]
-        HIDDEN_DIM = j[1]
-
-        model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags))
-        loss_function = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.parameters(), lr=0.1)
-
-        for epoch in range(epochs): 
+        for epoch in range(epochs):
+            print(epoch,"epoch")
             for sentence in training_data:
                 # Step 1. Remember that Pytorch accumulates gradients.
                 # We need to clear them out before each instance
                 model.zero_grad()
-                sentence = torch.LongTensor(sentence)
+                sentence = torch.LongTensor(sentence).to(device)
 
                 tag_scores = model(sentence[:-1])
 
                 loss = loss_function(tag_scores, sentence[1:])
                 loss.backward()
-                optimizer.step() 
-                break
+                optimizer.step()
+            
 
-        print(perplexity(training_data, model),"training accuracy")
-        print(perplexity(data_dev, model),"dev accuracy")
-    
+        return tag_scores     
 
 
 # In[13]:
 
+EMBEDDING_DIM = 32
+HIDDEN_DIM = 32
 
-train(1, dimension, training_data, data_dev)
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.1)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model,tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
 
+EMBEDDING_DIM = 64
+HIDDEN_DIM = 64
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.1)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model, tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
+
+EMBEDDING_DIM = 128
+HIDDEN_DIM = 128
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.1)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model,tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
+
+EMBEDDING_DIM = 256
+HIDDEN_DIM = 256
+
+model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(tags), len(tags)).to(device)
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.1)
+tag_scores = train(10, model, training_data)
+print(perplexity(training_data, model,tag_scores),"training accuracy")
+print(perplexity(data_dev, model,tag_scores),"dev accuracy")
